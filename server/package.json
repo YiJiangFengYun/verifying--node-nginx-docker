@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "server",
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "args": "^5.0.1",
     "log4js": "^5.1.0"
   }
 }
