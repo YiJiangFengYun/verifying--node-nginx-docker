@@ -2,14 +2,18 @@
 const gulp = require("gulp");
 const fs = require("fs");
 
-//Define constants
+/**
+ * Define constants
+ **/
 const nameContainerNginx = "nginx";
 const nameContainerAppCluster = "app";
 const numCluster = 2;
 const portClusters = [3000, 3001];
 
 
-//Define tasks.
+/**
+ * Define sub tasks.
+ **/
 
 //Create Dockerfile for the app (app cluster).
 gulp.task("make-app-dockerfile", () => {
@@ -41,9 +45,22 @@ gulp.task("build-docker-compose", () => {
 });
 
 
+/**
+ * Define final tasks
+ **/
+
+gulp.task("build", gulp.series([
+    "make-app-dockerfile",
+    "make-nginx-config",
+    "make-nginx-dockerfile",
+    "make-docker-compose-file",
+    "build-docker-compose",
+]));
 
 
-//Define functions
+/**
+ * Define functions
+ **/
 function readTextFile(path) {
     return Promise((resolve, reject) => {
         fs.readFile(path, "utf8", (err, data) => {
