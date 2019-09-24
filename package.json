@@ -1,0 +1,24 @@
+{
+  "name": "verifying--node-nginx-docker",
+  "version": "0.0.0",
+  "description": "A varify project for node processes running in docker and balancing with nginx.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YiJiangFengYun/verifying--node-nginx-docker.git"
+  },
+  "author": "YiJiangFengYun",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/YiJiangFengYun/verifying--node-nginx-docker/issues"
+  },
+  "homepage": "https://github.com/YiJiangFengYun/verifying--node-nginx-docker#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-cli": "^2.2.0"
+  }
+}
