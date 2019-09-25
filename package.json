@@ -18,6 +18,7 @@
   "homepage": "https://github.com/YiJiangFengYun/verifying--node-nginx-docker#readme",
   "dependencies": {},
   "devDependencies": {
+    "fs-extra": "^8.1.0",
     "gulp": "^4.0.2",
     "gulp-cli": "^2.2.0"
   }
