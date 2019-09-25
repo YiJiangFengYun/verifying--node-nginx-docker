@@ -14,9 +14,8 @@ const portClusters = [3000, 3001];
 const pathServer = "server";
 const pathNginx = "nginx";
 const pathBuild = "build";
+const pathDockerComposeFile = "docker-compose.yml";
 const nameDockerFile = "Dockerfile";
-
-
 
 /**
  * Define sub tasks.
@@ -38,25 +37,22 @@ gulp.task("copy-files", gulp.series([
         return gulp.src(path.join(process.cwd(), pathNginx, "**/*"))
             .pipe(gulp.dest(path.join(pathBuild, pathNginx)));
     },
-    () => {
-        //Copy the docker-compose.yml.
-        return gulp.src("docker-compose.yml")
-            .pipe(gulp.dest(path.join(pathBuild)));
-    }
+    // () => {
+    //     //Copy the docker-compose.yml.
+    //     return gulp.src(pathDockerComposeFile)
+    //         .pipe(gulp.dest(path.join(pathBuild)));
+    // }
 ]))
 
 //Create Dockerfile for the app (app cluster).
 gulp.task("make-app-dockerfile", () => {
     return Promise.resolve()
-    //Read template docker file.
     .then(() => {
-        return readTextFile(path.join(pathServer, nameDockerFile));
+        return lineText("FROM node") +
+            lineText("CMD npm install && npm start");
     })
     .then((content) => {
-        return content;
-    })
-    .then((content) => {
-        return writeTextFile(path.join(pathServer, nameDockerFile));
+        return writeTextFile(path.join(pathBuild, pathServer, nameDockerFile), content);
     });
 });
 
@@ -67,7 +63,18 @@ gulp.task("make-nginx-config", () => {
 
 //Make nginx 
 gulp.task("make-nginx-dockerfile", () => {
-    return Promise.resolve();
+    return Promise.resolve()
+    .then(() => {
+        //From nginx
+        return lineText("FROM nginx") +
+            //Copy nginx config.
+            lineText("COPY ./default.conf /etc/nginx/conf.d/default.conf") +
+            //Copy nginx proxy config.
+            lineText("COPY ./includes/ /etc/nginx/includes/");
+    })
+    .then((content) => {
+        return writeTextFile(path.join(pathBuild, pathNginx, nameDockerFile), content);
+    });
 });
 
 //Make docker compose file.
@@ -77,7 +84,13 @@ gulp.task("make-docker-compose-file", () => {
 
 //Run docker compose build
 gulp.task("build-docker-compose", () => {
-    return Promise.resolve();
+    return Promise.resolve()
+    .then(() => {
+        return "";
+    })
+    .then((content) => {
+        return writeTextFile(path.join(pathBuild, pathDockerComposeFile), content);
+    });
 });
 
 
@@ -98,6 +111,11 @@ gulp.task("build", gulp.series([
 /**
  * Define functions
  **/
+/**
+ * Read content from a file.
+ * @param {string} path File path.
+ * @returns {Promise<string>}
+ */
 function readTextFile(path) {
     return new Promise((resolve, reject) => {
         fs.readFile(path, "utf8", (err, data) => {
@@ -107,6 +125,12 @@ function readTextFile(path) {
     });
 }
 
+/**
+ * Write text to a file.
+ * @param {string} path File path.
+ * @param {string} data File content.
+ * @returns {Promise<void>}
+ */
 function writeTextFile(path, data) {
     return new Promise((resolve, reject) => {
         fs.writeFile(path, data, (err) => {
@@ -114,4 +138,13 @@ function writeTextFile(path, data) {
             resolve();
         })
     });
+}
+
+/**
+ * Create a new line text from a text.
+ * @param {string} text a origin text.
+ * @returns {string}
+ */
+function lineText(text) {
+    return text ? text + "\n" : "";
 }
