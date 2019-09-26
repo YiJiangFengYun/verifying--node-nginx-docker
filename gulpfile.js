@@ -11,14 +11,17 @@ const log = require("fancy-log");
 const nameContainerNginx = "nginx";
 const nameContainerApp = "app";
 const portApp = 8000;
+const portNginx = 80;
+const portNginxOut = 8000;
 const numApp = 2;
-const prefixAppService = "app_";
 const pathServer = "server";
 const pathNginx = "nginx";
 const pathBuild = "build";
 const pathDockerComposeFile = "docker-compose.yml";
 const nameDockerFile = "Dockerfile";
 const nameNginxConfig = "default.conf";
+const versionDockerCompose = "3.7";
+const policyRestart = "always";
 
 /**
  * Define sub tasks.
@@ -76,7 +79,7 @@ gulp.task("make-nginx-config", () => {
         for (let i = 0; i < numApp; ++i) {
             let no = i + 1;
             if (i) contentNodeServer += indent;
-            contentNodeServer += lineText(`app_${no} ${prefixAppService}${no}:${portApp} fail_timeout=0;`);
+            contentNodeServer += lineText(`app_${no} ${nameContainerApp}_${no}:${portApp} fail_timeout=0;`);
         }
         log.info(`The node servers:`);
         log.info(`${indent}${contentNodeServer}`);
@@ -119,7 +122,60 @@ gulp.task("make-docker-compose-file", () => {
 gulp.task("build-docker-compose", () => {
     return Promise.resolve()
     .then(() => {
-        return "";
+        let indentCount = 0;
+        let indentUp = 2;
+        let content = lineText(`version: "${versionDockerCompose}"`, indentCount)
+            + lineText(`services:`, indentCount)
+            ;
+        indentCount += indentUp;
+        //App services
+        for (let i = 0; i < numApp; ++i) {
+            let no = i + 1;
+            content += lineText(`${nameContainerApp}_${no}:`, indentCount);
+            {
+                //build
+                indentCount += indentUp;
+                content += lineText(`build: ./${pathServer}`, indentCount);
+                indentCount -= indentUp;
+            }
+            {
+                //Restart policy
+                indentCount += indentUp;
+                content += lineText(`restart: ${policyRestart}`, indentCount);
+                indentCount -= indentUp;
+            }
+            
+        }
+        //Nginx services
+        content += lineText(`${nameContainerNginx}:`, indentCount);
+        indentCount += indentUp;
+        {
+            //build
+            content += lineText(`build: ./${pathNginx}`, indentCount);
+        }
+        {
+            //depends on
+            content += lineText(`depends_on:`, indentCount);
+            indentCount += indentUp;
+            for (let i = 0; i < numApp; ++i) {
+                let no = i + 1;
+                content += lineText(`- ${nameContainerApp}_${no}`, indentCount);
+            }
+            indentCount -= indentUp;
+        }
+        {
+            //ports
+            content += lineText(`ports:`, indentCount);
+            indentCount += indentUp;
+            content += lineText(`- ${portNginxOut}:${portNginx}`, indentCount);
+            indentCount -= indentUp;
+        }
+        {
+            //Restart policy
+            content += lineText(`restart: ${policyRestart}`, indentCount);
+        }
+
+        return content;
     })
     .then((content) => {
         return writeTextFile(path.join(pathBuild, pathDockerComposeFile), content);
@@ -178,6 +234,6 @@ function writeTextFile(path, data) {
  * @param {string} text a origin text.
  * @returns {string}
  */
-function lineText(text) {
-    return text ? text + "\n" : "";
+function lineText(text, indentCount) {
+    return text ? " ".repeat(indentCount || 0) + text + "\n" : "";
 }
