@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const fsExtra = require("fs-extra");
 const log = require("fancy-log");
+const childProcess = require("child_process");
 
 /**
  * Define constants
@@ -182,6 +183,10 @@ gulp.task("build-docker-compose", () => {
     });
 });
 
+gulp.task("docker-compose", () => {
+    return spawn(" docker-compose", ["build"], pathBuild);
+});
+
 
 /**
  * Define final tasks
@@ -194,6 +199,7 @@ gulp.task("build", gulp.series([
     "make-nginx-dockerfile",
     "make-docker-compose-file",
     "build-docker-compose",
+    "docker-compose",
 ]));
 
 
@@ -236,4 +242,34 @@ function writeTextFile(path, data) {
  */
 function lineText(text, indentCount) {
     return text ? " ".repeat(indentCount || 0) + text + "\n" : "";
+}
+
+/**
+ * Spawn a process to run command.
+ * @param {string} command 
+ * @param {readonly string[]} args 
+ * @param {string} cwd 
+ */
+function spawn(command, args, cwd) {
+    return new Promise((resolve, reject) => {
+        let childProc = childProcess.spawn(
+            command,
+            args,
+            {
+                stdio: "inherit",
+                windowsHide: true,
+                cwd: cwd,
+            }
+        );
+        childProc.once("exit", (code) => {
+            if (code) {
+                reject(new Error(`Failed to execute script ${scriptPath}`));
+            } else {
+                resolve();
+            }
+        });
+        childProc.on("error", (err) => {
+            reject(err);
+        });
+    });
 }
