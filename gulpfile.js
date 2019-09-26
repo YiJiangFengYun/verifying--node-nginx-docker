@@ -3,19 +3,22 @@ const gulp = require("gulp");
 const fs = require("fs");
 const path = require("path");
 const fsExtra = require("fs-extra");
+const log = require("fancy-log");
 
 /**
  * Define constants
  **/
 const nameContainerNginx = "nginx";
-const nameContainerAppCluster = "app";
-const numCluster = 2;
-const portClusters = [3000, 3001];
+const nameContainerApp = "app";
+const portApp = 8000;
+const numApp = 2;
+const prefixAppService = "app_";
 const pathServer = "server";
 const pathNginx = "nginx";
 const pathBuild = "build";
 const pathDockerComposeFile = "docker-compose.yml";
 const nameDockerFile = "Dockerfile";
+const nameNginxConfig = "default.conf";
 
 /**
  * Define sub tasks.
@@ -48,8 +51,8 @@ gulp.task("copy-files", gulp.series([
 gulp.task("make-app-dockerfile", () => {
     return Promise.resolve()
     .then(() => {
-        return lineText("FROM node") +
-            lineText("CMD npm install && npm start");
+        return lineText("FROM node")
+            + lineText(`CMD npm install && npm start -- --port ${portApp}`);
     })
     .then((content) => {
         return writeTextFile(path.join(pathBuild, pathServer, nameDockerFile), content);
@@ -58,7 +61,36 @@ gulp.task("make-app-dockerfile", () => {
 
 //Create a nginx server config for load balancing to the app cluster.
 gulp.task("make-nginx-config", () => {
-    return Promise.resolve();
+    return Promise.resolve()
+    //Read nginx server template file.
+    .then(() => {
+        return readTextFile(path.join(pathBuild, pathNginx, nameNginxConfig));
+    })
+    //Modify file content.
+    .then((content) => {
+        let index = content.indexOf("%node-servers%");
+        let indexLastNewLine = content.lastIndexOf("\n", index);
+        let countIndent = index - indexLastNewLine - 1;
+        let indent = " ".repeat(countIndent);
+        let contentNodeServer = "";
+        for (let i = 0; i < numApp; ++i) {
+            let no = i + 1;
+            if (i) contentNodeServer += indent;
+            contentNodeServer += lineText(`app_${no} ${prefixAppService}${no}:${portApp} fail_timeout=0;`);
+        }
+        log.info(`The node servers:`);
+        log.info(`${indent}${contentNodeServer}`);
+        
+        content = content.replace(
+            "%node-servers%", 
+            contentNodeServer,
+        );
+        return content;
+    })
+    //Write new content to nginx server template file.
+    .then((content) => {
+        return writeTextFile(path.join(pathBuild, pathNginx, nameNginxConfig), content);
+    });
 });
 
 //Make nginx 
@@ -66,11 +98,12 @@ gulp.task("make-nginx-dockerfile", () => {
     return Promise.resolve()
     .then(() => {
         //From nginx
-        return lineText("FROM nginx") +
+        return lineText("FROM nginx")
             //Copy nginx config.
-            lineText("COPY ./default.conf /etc/nginx/conf.d/default.conf") +
+            + lineText("COPY ./default.conf /etc/nginx/conf.d/default.conf")
             //Copy nginx proxy config.
-            lineText("COPY ./includes/ /etc/nginx/includes/");
+            // + lineText("COPY ./includes/ /etc/nginx/includes/")
+            ;
     })
     .then((content) => {
         return writeTextFile(path.join(pathBuild, pathNginx, nameDockerFile), content);
