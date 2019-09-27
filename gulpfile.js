@@ -142,7 +142,7 @@ gulp.task("build-docker-compose", () => {
             let no = i + 1;
             content += lineText(`${nameContainerApp}_${no}:`, indentCount);
             indentCount += indentUp;
-            if (!i) {
+            {
                 //build
                 content += lineText(`build: ./${pathServer}`, indentCount);
             }
