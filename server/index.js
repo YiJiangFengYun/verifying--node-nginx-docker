@@ -23,6 +23,7 @@ server.listen(port, host, () => {
 });
 
 function onTerminated() {
+    console.log(`Server is terminated.`);
     process.exit(0);
 }
 
