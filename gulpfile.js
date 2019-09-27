@@ -196,7 +196,7 @@ gulp.task("build-docker-compose", () => {
 });
 
 gulp.task("docker-compose", () => {
-    return spawn(" docker-compose", ["build"], pathBuild);
+    return spawn("docker-compose", ["build"], pathBuild);
 });
 
 
