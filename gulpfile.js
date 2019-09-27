@@ -10,7 +10,9 @@ const childProcess = require("child_process");
  * Define constants
  **/
 const nameContainerNginx = "nginx";
+const nameImageNginx = "vnnd-nginx";
 const nameContainerApp = "app";
+const nameImageApp = "vnnd-app";
 const portApp = 8000;
 const portNginx = 80;
 const portNginxOut = 8000;
@@ -138,19 +140,20 @@ gulp.task("build-docker-compose", () => {
         for (let i = 0; i < numApp; ++i) {
             let no = i + 1;
             content += lineText(`${nameContainerApp}_${no}:`, indentCount);
-            {
+            indentCount += indentUp;
+            if (!i) {
                 //build
-                indentCount += indentUp;
                 content += lineText(`build: ./${pathServer}`, indentCount);
-                indentCount -= indentUp;
+            }
+            {
+                //image
+                content += lineText(`image: ${nameImageApp}`, indentCount);
             }
             {
                 //Restart policy
-                indentCount += indentUp;
                 content += lineText(`restart: ${policyRestart}`, indentCount);
-                indentCount -= indentUp;
             }
-            
+            indentCount -= indentUp;
         }
         //Nginx services
         content += lineText(`${nameContainerNginx}:`, indentCount);
@@ -158,6 +161,9 @@ gulp.task("build-docker-compose", () => {
         {
             //build
             content += lineText(`build: ./${pathNginx}`, indentCount);
+        }
+        {
+            content += lineText(`image: ${nameImageNginx}`, indentCount);
         }
         {
             //depends on
