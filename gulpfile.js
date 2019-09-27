@@ -61,7 +61,7 @@ gulp.task("make-app-dockerfile", () => {
             // A wildcard is used to ensure both package.json AND package-lock.json are copied
             + lineText("COPY package*.json ./")
             + lineText("RUN npm install")
-            + lineText(`npm start -- --port ${portApp}`);
+            + lineText(`CMD npm start -- --port ${portApp}`);
     })
     .then((content) => {
         return writeTextFile(path.join(pathBuild, pathServer, nameDockerFile), content);
