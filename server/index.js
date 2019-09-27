@@ -13,11 +13,18 @@ const name = options.name;
 const id = Math.round(Math.random() * 100000);
 
 const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end(`Hello, I am ${id}!`);
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end(`Hello, I am ${id}!`);
 });
 
 server.listen(port, host, () => {
-  console.log(`Server running at http://${host}:${port}/`);
+    console.log(`Server running at http://${host}:${port}/`);
 });
+
+function onTerminated() {
+    process.exit(0);
+}
+
+process.on("SIGINT", onTerminated);
+process.on("SIGTERM", onTerminated);
