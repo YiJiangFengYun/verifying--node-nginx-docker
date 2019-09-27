@@ -64,7 +64,9 @@ gulp.task("make-app-dockerfile", () => {
             + lineText("COPY package*.json ./")
             + lineText("COPY index.js ./")
             + lineText("RUN npm install")
-            + lineText(`CMD npm start -- --port ${portApp}`);
+            // Use /bin/sh -c like bellow, process will not get SIGTERM and SIGINT
+            // + lineText(`CMD npm start -- --port ${portApp}`);
+            + lineText(`CMD ["node", ".", "--port", "${portApp}"]`);
     })
     .then((content) => {
         return writeTextFile(path.join(pathBuild, pathServer, nameDockerFile), content);
