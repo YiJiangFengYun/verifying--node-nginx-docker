@@ -80,7 +80,7 @@ gulp.task("make-nginx-config", () => {
         for (let i = 0; i < numApp; ++i) {
             let no = i + 1;
             if (i) contentNodeServer += indent;
-            contentNodeServer += lineText(`app_${no} ${nameContainerApp}_${no}:${portApp} fail_timeout=0;`);
+            contentNodeServer += lineText(`server ${nameContainerApp}_${no}:${portApp} fail_timeout=0;`);
         }
         log.info(`The node servers:`);
         log.info(`${indent}${contentNodeServer}`);
