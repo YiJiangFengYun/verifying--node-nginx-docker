@@ -62,6 +62,7 @@ gulp.task("make-app-dockerfile", () => {
             // Install app dependencies
             // A wildcard is used to ensure both package.json AND package-lock.json are copied
             + lineText("COPY package*.json ./")
+            + lineText("COPY index.js ./")
             + lineText("RUN npm install")
             + lineText(`CMD npm start -- --port ${portApp}`);
     })
